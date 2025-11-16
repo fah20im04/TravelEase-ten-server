@@ -179,6 +179,17 @@ app.delete("/vehicles/:id", verifyToken, async (req, res) => {
   }
 });
 
+
+app.get("/allVehicles", verifyToken, async (req, res) => {
+  try {
+    const allVehicles = await vehiclesCollection.find().sort({ createdAt: -1 }).toArray();
+    res.send(allVehicles);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+
 // ---------------- BOOKINGS ROUTES ----------------
 app.get("/bookings", verifyToken, async (req, res) => {
   try {
