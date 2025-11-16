@@ -65,22 +65,33 @@ async function connectDB() {
 }
 
 // ---------------- USERS ROUTES ----------------
+
+// Create user or verify existence
 app.post("/users", async (req, res) => {
   try {
     const newUser = req.body;
     const existingUser = await usersCollection.findOne({
       email: newUser.email,
     });
-    if (existingUser)
-      return res.status(200).send({ message: "User already exists" });
+    if (existingUser) {
+      return res
+        .status(200)
+        .send({ message: "User already exists", user: existingUser });
+    }
 
-    await usersCollection.insertOne(newUser);
-    res.status(201).send({ message: "User created successfully" });
+    const result = await usersCollection.insertOne(newUser);
+    res
+      .status(201)
+      .send({
+        message: "User created successfully",
+        user: { ...newUser, _id: result.insertedId },
+      });
   } catch (err) {
     res.status(500).send({ error: "Server error", details: err.message });
   }
 });
 
+// Login user and issue JWT
 app.post("/login", async (req, res) => {
   try {
     const { email } = req.body;
@@ -90,7 +101,7 @@ app.post("/login", async (req, res) => {
     const token = jwt.sign({ email: user.email, id: user._id }, JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.send({ token });
+    res.send({ message: "Login successful", token, user });
   } catch (err) {
     res.status(500).send({ error: "Server error", details: err.message });
   }
@@ -248,5 +259,5 @@ app.delete("/bookings/:id", verifyToken, async (req, res) => {
 
 // ---------------- START SERVER ----------------
 connectDB().then(() => {
-  app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+  app.listen(port, () => console.log(`Server running on port ${port}`));
 });
