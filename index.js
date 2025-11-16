@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 
 const app = express();
@@ -75,6 +75,40 @@ app.post("/login", async (req, res) => {
 
     const token = jwt.sign({ email: user.email, id: user._id }, JWT_SECRET, { expiresIn: "1h" });
     res.send({ token });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// ---------------- VEHICLE ROUTES ----------------
+app.get("/vehicles", async (req, res) => {
+  try {
+    const vehicles = await vehiclesCollection.find().sort({ createdAt: -1 }).limit(6).toArray();
+    res.send(vehicles);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/vehicles/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) return res.status(400).send({ error: "Invalid vehicle ID" });
+
+    const vehicle = await vehiclesCollection.findOne({ _id: new ObjectId(id) });
+    if (!vehicle) return res.status(404).send({ message: "Vehicle not found" });
+
+    res.send(vehicle);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.post("/vehicles", verifyToken, async (req, res) => {
+  try {
+    const vehicle = { ...req.body, createdAt: new Date() };
+    const result = await vehiclesCollection.insertOne(vehicle);
+    res.status(201).send({ message: "Vehicle added successfully", insertedId: result.insertedId });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
