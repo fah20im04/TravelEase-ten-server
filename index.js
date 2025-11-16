@@ -179,6 +179,47 @@ app.delete("/vehicles/:id", verifyToken, async (req, res) => {
   }
 });
 
+// ---------------- BOOKINGS ROUTES ----------------
+app.get("/bookings", verifyToken, async (req, res) => {
+  try {
+    const email = req.token_email;
+    const bookings = await bookingCollection.find({ userEmail: email }).toArray();
+    res.send(bookings);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.post("/bookings", verifyToken, async (req, res) => {
+  try {
+    const booking = req.body;
+    if (booking.userEmail !== req.token_email) return res.status(403).send({ message: "Forbidden: Cannot book for another user" });
+
+    const existing = await bookingCollection.findOne({ vehicleId: booking.vehicleId });
+    if (existing) return res.status(400).send({ error: "Vehicle already booked" });
+
+    const result = await bookingCollection.insertOne(booking);
+    res.send({ message: "Booking saved successfully", bookingId: result.insertedId });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.delete("/bookings/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) return res.status(400).send({ error: "Invalid booking ID" });
+
+    const result = await bookingCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) return res.status(404).send({ error: "Booking not found" });
+
+    res.send({ message: "Booking canceled successfully" });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+
 
 app.get("/", (req, res) => res.send("TravelEase server running..."));
 
