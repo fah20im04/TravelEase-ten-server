@@ -230,6 +230,14 @@ app.delete("/bookings/:id", verifyToken, async (req, res) => {
   }
 });
 
+// Previous code (commits 1–9) remains here
+
+// ---------------- START SERVER ----------------
+connectDB().then(() => {
+  app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+});
+
+
 
 
 app.get("/", (req, res) => res.send("TravelEase server running..."));
