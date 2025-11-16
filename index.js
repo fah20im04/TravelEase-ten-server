@@ -15,6 +15,24 @@ const dbName = process.env.DB_NAME;
 
 let db, vehiclesCollection, usersCollection, bookingCollection;
 
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const verifyToken = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) return res.status(401).send({ message: "Unauthorized: No token" });
+
+  const token = authorization.split(" ")[1];
+  if (!token) return res.status(401).send({ message: "Unauthorized: Missing token" });
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).send({ message: "Forbidden: Invalid token" });
+    req.token_email = decoded.email;
+    next();
+  });
+};
+
+
 async function connectDB() {
   try {
     const client = new MongoClient(uri, {
