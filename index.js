@@ -114,6 +114,72 @@ app.post("/vehicles", verifyToken, async (req, res) => {
   }
 });
 
+app.get("/vehicles", async (req, res) => {
+  try {
+    const vehicles = await vehiclesCollection.find().sort({ createdAt: -1 }).limit(6).toArray();
+    res.send(vehicles);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/vehicles/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) return res.status(400).send({ error: "Invalid vehicle ID" });
+
+    const vehicle = await vehiclesCollection.findOne({ _id: new ObjectId(id) });
+    if (!vehicle) return res.status(404).send({ message: "Vehicle not found" });
+
+    res.send(vehicle);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.post("/vehicles", verifyToken, async (req, res) => {
+  try {
+    const vehicle = { ...req.body, createdAt: new Date() };
+    const result = await vehiclesCollection.insertOne(vehicle);
+    res.status(201).send({ message: "Vehicle added successfully", insertedId: result.insertedId });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.put("/vehicles/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) return res.status(400).send({ error: "Invalid vehicle ID" });
+
+    const updatedData = { ...req.body };
+    delete updatedData.userEmail;
+
+    const result = await vehiclesCollection.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
+
+    if (result.matchedCount === 0) return res.status(404).send({ error: "Vehicle not found" });
+
+    res.send({ message: "Vehicle updated successfully" });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.delete("/vehicles/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) return res.status(400).send({ error: "Invalid vehicle ID" });
+
+    const result = await vehiclesCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) return res.status(404).send({ error: "Vehicle not found" });
+
+    res.send({ message: "Vehicle deleted successfully" });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+
 app.get("/", (req, res) => res.send("TravelEase server running..."));
 
 app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
