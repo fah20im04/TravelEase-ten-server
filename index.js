@@ -11,12 +11,23 @@ const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  'http://localhost:5173',          // local dev frontend
+  'https://your-frontend.vercel.app', // production frontend
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow Postman, server-to-server
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // required if frontend sends cookies
+}));
+
 
 app.use(express.json());
 
