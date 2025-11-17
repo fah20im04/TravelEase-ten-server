@@ -18,14 +18,13 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman, server-to-server
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow Postman or server-to-server requests
+    if (!origin) return callback(null, true);
+
+    // Allow localhost and any origin for now
+    callback(null, true);
   },
-  credentials: true, // required if frontend sends cookies
+  credentials: true
 }));
 
 
