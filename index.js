@@ -11,22 +11,12 @@ const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const allowedOrigins = [
-  'http://localhost:5173',          // local dev frontend
-  'https://your-frontend.vercel.app', // production frontend
-];
 
+// https://rainbow-crepe-8e3a64.netlify.app
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow Postman or server-to-server requests
-    if (!origin) return callback(null, true);
-
-    // Allow localhost and any origin for now
-    callback(null, true);
-  },
-  credentials: true
+  origin: "https://rainbow-crepe-8e3a64.netlify.app", // আপনার frontend URL
+  credentials: true                // cookie/JWT send করতে দিতে হলে এটি অবশ্যই true
 }));
-
 
 app.use(express.json());
 
