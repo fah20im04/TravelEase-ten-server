@@ -14,7 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // https://rainbow-crepe-8e3a64.netlify.app
 app.use(cors({
-  origin: "https://rainbow-crepe-8e3a64.netlify.app", // আপনার frontend URL
+  origin: ["https://rainbow-crepe-8e3a64.netlify.app"], // আপনার frontend URL
   credentials: true                // cookie/JWT send করতে দিতে হলে এটি অবশ্যই true
 }));
 
